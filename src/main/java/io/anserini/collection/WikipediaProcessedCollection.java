@@ -68,10 +68,10 @@ public class WikipediaProcessedCollection extends DocumentCollection
 
   @Override
   public List<Path> getFileSegmentPaths() {
-    Set<String> allowedFileSuffix = new HashSet<>(Arrays.asList(".json"));
+    Set<String> allowedFilePrefix = new HashSet<>(Arrays.asList("wiki_"));
 
-    return discover(path, EMPTY_SET, EMPTY_SET, EMPTY_SET,
-        allowedFileSuffix, EMPTY_SET);
+    return discover(path, EMPTY_SET, allowedFilePrefix, EMPTY_SET,
+        EMPTY_SET, EMPTY_SET);
   }
 
   @Override
