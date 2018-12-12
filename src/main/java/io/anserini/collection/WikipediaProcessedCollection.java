@@ -116,7 +116,7 @@ public class WikipediaProcessedCollection extends DocumentCollection
 			if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
 			  node = iterator.next();
 			  iter_paragraph = Arrays.asList(text.split("\n\n")).listIterator();
-        	  iter_paragraph.next();
+			  iter_paragraph.next();
 			} else {
 			  atEOF = true; // there is no more JSON object in the bufferedReader
 			}
