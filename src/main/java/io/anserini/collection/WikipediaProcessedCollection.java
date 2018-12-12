@@ -90,6 +90,7 @@ public class WikipediaProcessedCollection extends DocumentCollection
         node = iterator.next();
         String text = node.get("text").asText();
 		iter_paragraph = Arrays.asList(text.split("\n\n")).listIterator();
+		iter_paragraph.next();
       }
     }
 
@@ -111,9 +112,11 @@ public class WikipediaProcessedCollection extends DocumentCollection
         return false;
       } else if (iter_paragraph.hasNext()) {
         bufferedRecord = new WikipediaProcessedCollection.Document(node.get("id").asText() + "_" + String.valueOf(iter_paragraph.nextIndex()), iter_paragraph.next());
-        if(!iter_paragraph.hasNext()) {
+        while(!iter_paragraph.hasNext()) {
 			if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
 			  node = iterator.next();
+			  iter_paragraph = Arrays.asList(text.split("\n\n")).listIterator();
+        	  iter_paragraph.next();
 			} else {
 			  atEOF = true; // there is no more JSON object in the bufferedReader
 			}
