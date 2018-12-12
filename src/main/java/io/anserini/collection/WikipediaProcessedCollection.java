@@ -122,6 +122,7 @@ public class WikipediaProcessedCollection extends DocumentCollection
 			  iter_paragraph.next();
 			} else {
 			  atEOF = true; // there is no more JSON object in the bufferedReader
+			  break;
 			}
 		}
 	  }
