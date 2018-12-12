@@ -23,7 +23,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -83,7 +85,7 @@ public class WikipediaProcessedCollection extends DocumentCollection
     private MappingIterator<JsonNode> iterator; // iterator for JSON line objects
 
     protected FileSegment(Path path) throws IOException {
-      bufferedReader = new BufferedReader(new FileReader(path.toString()));
+      bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(path.toString())));
       ObjectMapper mapper = new ObjectMapper();
       iterator = mapper.readerFor(JsonNode.class).readValues(bufferedReader);
       if (iterator.hasNext()) {
@@ -115,6 +117,7 @@ public class WikipediaProcessedCollection extends DocumentCollection
         while(!iter_paragraph.hasNext()) {
 			if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
 			  node = iterator.next();
+			  String text = node.get("text").asText();
 			  iter_paragraph = Arrays.asList(text.split("\n\n")).listIterator();
 			  iter_paragraph.next();
 			} else {
