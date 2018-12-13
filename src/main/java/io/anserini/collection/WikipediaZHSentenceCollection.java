@@ -85,7 +85,7 @@ public class WikipediaZHSentenceCollection extends DocumentCollection
     private MappingIterator<JsonNode> iterator; // iterator for JSON line objects
 
     protected FileSegment(Path path) throws IOException {
-      bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(path.toString())));
+      bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(path.toString()), "UTF8"));
       ObjectMapper mapper = new ObjectMapper();
       iterator = mapper.readerFor(JsonNode.class).readValues(bufferedReader);
       if (iterator.hasNext()) {
