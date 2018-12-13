@@ -112,7 +112,18 @@ public class WikipediaZHSentenceCollection extends DocumentCollection
 
       if (node == null) {
         return false;
-      } else if (iterParagraph.hasNext()) {
+      } 
+      while(!iterParagraph.hasNext()) {
+			if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
+			  node = iterator.next();
+			  String text = node.get("text").asText();  
+			  iterParagraph = Arrays.asList(text.split("。")).listIterator();
+			  iterParagraph.next();
+			} else {
+			  atEOF = true; // there is no more JSON object in the bufferedReader
+			  return false;
+			}
+      }
         String sentence = iterParagraph.next().trim() + "。"; // Trim and add the punctuation back in since we split on it.
         sentence = sentence.replaceAll("\\n+", " ");
         bufferedRecord = new WikipediaZHSentenceCollection.Document(node.get("id").asText() + "_" + String.valueOf(iterParagraph.nextIndex()), sentence);
@@ -124,14 +135,9 @@ public class WikipediaZHSentenceCollection extends DocumentCollection
 			  iterParagraph.next();
 			} else {
 			  atEOF = true; // there is no more JSON object in the bufferedReader
-			  break;
+			  return false;
 			}
 		}
-	  }
-      else {
-        LOG.error("Error: invalid JsonNode type");
-        return false;
-      }
 
       return bufferedRecord != null;
     }
