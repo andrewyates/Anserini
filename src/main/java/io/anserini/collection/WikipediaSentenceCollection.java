@@ -129,6 +129,7 @@ public class WikipediaSentenceCollection extends DocumentCollection
               Reader reader = new StringReader(text);
               DocumentPreprocessor dp = new DocumentPreprocessor(reader);
               iterSentence = dp.iterator();
+              if (!iterSentence.hasNext()) continue;
               iterSentence.next();
               sentenceIndex = 0;
             } else {
@@ -145,6 +146,7 @@ public class WikipediaSentenceCollection extends DocumentCollection
               Reader reader = new StringReader(text);
               DocumentPreprocessor dp = new DocumentPreprocessor(reader);
               iterSentence = dp.iterator();
+              if (!iterSentence.hasNext()) continue;
               iterSentence.next();
               sentenceIndex = 0;
             } else {
