@@ -16,9 +16,6 @@
 
 package io.anserini.collection;
 
-import edu.stanford.nlp.process.DocumentPreprocessor;
-import edu.stanford.nlp.ling.SentenceUtils;
-import edu.stanford.nlp.ling.HasWord;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,8 +25,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.FileReader;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -67,9 +62,9 @@ import java.util.*;
  * </pre>
  *
  */
-public class WikipediaSentenceCollection extends DocumentCollection
-    implements SegmentProvider<WikipediaSentenceCollection.Document> {
-  private static final Logger LOG = LogManager.getLogger(WikipediaSentenceCollection.class);
+public class WikipediaZHSentenceCollection extends DocumentCollection
+    implements SegmentProvider<WikipediaZHSentenceCollection.Document> {
+  private static final Logger LOG = LogManager.getLogger(WikipediaZHSentenceCollection.class);
 
   @Override
   public List<Path> getFileSegmentPaths() {
@@ -86,9 +81,8 @@ public class WikipediaSentenceCollection extends DocumentCollection
 
   public class FileSegment extends BaseFileSegment<Document> {
     private JsonNode node = null;
-    private Iterator<List<HasWord>> iterSentence = null; // iterator for sentences
+    private ListIterator<String> iterParagraph = null; // iterator for paragraphs
     private MappingIterator<JsonNode> iterator; // iterator for JSON line objects
-    private int sentenceIndex = 0;
 
     protected FileSegment(Path path) throws IOException {
       bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(path.toString())));
@@ -97,14 +91,11 @@ public class WikipediaSentenceCollection extends DocumentCollection
       if (iterator.hasNext()) {
         node = iterator.next();
         String text = node.get("text").asText();
-        Reader reader = new StringReader(text);
-        DocumentPreprocessor dp = new DocumentPreprocessor(reader);
-        iterSentence = dp.iterator();
-        iterSentence.next();
-        sentenceIndex = 0;
+		iterParagraph = Arrays.asList(text.split("。")).listIterator();
+		iterParagraph.next();
       }
     }
-    
+
     @Override
     public boolean hasNext() {
       if (nextRecordStatus == Status.ERROR) {
@@ -121,44 +112,26 @@ public class WikipediaSentenceCollection extends DocumentCollection
 
       if (node == null) {
         return false;
-      } 
-      while(!iterSentence.hasNext()) {
-            if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
-              node = iterator.next();
-              String text = node.get("text").asText();
-              Reader reader = new StringReader(text);
-              DocumentPreprocessor dp = new DocumentPreprocessor(reader);
-              iterSentence = dp.iterator();
-              if (!iterSentence.hasNext()) continue;
-              iterSentence.next();
-              sentenceIndex = 0;
-            } else {
-              atEOF = true; // there is no more JSON object in the bufferedReader
-              return false;
-            }
-      } 
-      List<HasWord> wordList = iterSentence.next();
-      while(wordList.size() <= 5) { // remove short sentences
-          while(!iterSentence.hasNext()) {
-            if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
-              node = iterator.next();
-              String text = node.get("text").asText();
-              Reader reader = new StringReader(text);
-              DocumentPreprocessor dp = new DocumentPreprocessor(reader);
-              iterSentence = dp.iterator();
-              if (!iterSentence.hasNext()) continue;
-              iterSentence.next();
-              sentenceIndex = 0;
-            } else {
-              atEOF = true; // there is no more JSON object in the bufferedReader
-              return false;
-            }
-        }
-        wordList = iterSentence.next();
+      } else if (iterParagraph.hasNext()) {
+        String sentence = iterParagraph.next().trim() + "。"; // Trim and add the punctuation back in since we split on it.
+        sentence = sentence.replaceAll("\\n+", " ");
+        bufferedRecord = new WikipediaZHSentenceCollection.Document(node.get("id").asText() + "_" + String.valueOf(iterParagraph.nextIndex()), sentence);
+        while(!iterParagraph.hasNext()) {
+			if (iterator.hasNext()) { // if bufferedReader contains JSON line objects, we parse the next JSON into node
+			  node = iterator.next();
+			  String text = node.get("text").asText();  
+			  iterParagraph = Arrays.asList(text.split("。")).listIterator();
+			  iterParagraph.next();
+			} else {
+			  atEOF = true; // there is no more JSON object in the bufferedReader
+			  break;
+			}
+		}
+	  }
+      else {
+        LOG.error("Error: invalid JsonNode type");
+        return false;
       }
-      String sent = SentenceUtils.listToString(wordList);
-      bufferedRecord = new WikipediaSentenceCollection.Document(node.get("id").asText() + "_" + String.valueOf(sentenceIndex), sent);
-      sentenceIndex += 1;
 
       return bufferedRecord != null;
     }
