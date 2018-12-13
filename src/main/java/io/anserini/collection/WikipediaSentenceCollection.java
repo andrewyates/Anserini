@@ -133,7 +133,7 @@ public class WikipediaSentenceCollection extends DocumentCollection
               sentenceIndex = 0;
             } else {
               atEOF = true; // there is no more JSON object in the bufferedReader
-              break;
+              return false;
             }
       } 
       List<HasWord> wordList = iterSentence.next();
@@ -149,11 +149,10 @@ public class WikipediaSentenceCollection extends DocumentCollection
               sentenceIndex = 0;
             } else {
               atEOF = true; // there is no more JSON object in the bufferedReader
-              break;
+              return false;
             }
         }
         wordList = iterSentence.next();
-        if (atEOF) break;
       }
       String sent = SentenceUtils.listToString(wordList);
       bufferedRecord = new WikipediaSentenceCollection.Document(node.get("id").asText() + "_" + String.valueOf(sentenceIndex), sent);
