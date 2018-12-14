@@ -18,6 +18,7 @@ package io.anserini.index;
 
 import io.anserini.analysis.EnglishStemmingAnalyzer;
 import io.anserini.analysis.TweetAnalyzer;
+import org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer;
 import io.anserini.collection.*;
 import io.anserini.index.generator.LuceneDocumentGenerator;
 import org.apache.commons.io.FileUtils;
@@ -103,6 +104,9 @@ public final class IndexCollection {
 
     @Option(name = "-whitelist", usage = "file containing docids, one per line; only specified docids will be indexed.")
     public String whitelist = null;
+    
+    @Option(name = "-chinese", usage = "boolean to use chinese analyser while indexing")
+    public boolean chinese = false;
 
     @Option(name = "-tweet.keepRetweets", usage = "boolean switch to keep retweets while indexing")
     public boolean tweetKeepRetweets = false;
@@ -297,8 +301,9 @@ public final class IndexCollection {
         new EnglishStemmingAnalyzer(args.stemmer, CharArraySet.EMPTY_SET) : new EnglishStemmingAnalyzer(args.stemmer);
     
     final TweetAnalyzer tweetAnalyzer = new TweetAnalyzer(args.tweetStemming);
+    final SmartChineseAnalyzer chineseAnalyzer = new SmartChineseAnalyzer(args.chinese);
     final IndexWriterConfig config = args.collectionClass.equals("TweetCollection") ?
-        new IndexWriterConfig(tweetAnalyzer) : new IndexWriterConfig(analyzer);
+        new IndexWriterConfig(tweetAnalyzer) : args.chinese? new IndexWriterConfig(chineseAnalyzer) : new IndexWriterConfig(analyzer);
     config.setSimilarity(new BM25Similarity());
     config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
     config.setRAMBufferSizeMB(args.memorybufferSize);
