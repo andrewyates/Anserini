@@ -262,6 +262,7 @@ public final class IndexCollection {
     LOG.info("Store raw docs? " + args.storeRawDocs);
     LOG.info("Optimize (merge segments)? " + args.optimize);
     LOG.info("Whitelist: " + args.whitelist);
+    LOG.info("Chinese?: " + args.chinese);
 
     this.indexPath = Paths.get(args.index);
     if (!Files.exists(this.indexPath)) {
